@@ -1,0 +1,36 @@
+# dot files
+.vscode/launch.json
+.settings
+.eide/log
+.eide.usr.ctx.json
+
+# project out (子工程同样生效，故不加前导斜杠)
+build/
+bin/
+obj/
+out/
+
+# Keil out & personal settings
+Objects/
+Listings/
+*.uvoptx
+*.uvguix.*
+*.goya
+*.bak
+*.dep
+*.o
+*.crf
+*.d
+*.lst
+*.axf
+*.hex
+*.map
+*.lnp
+JLinkLog.txt
+JLinkSettings.ini
+RTE_Components.h
+DebugConfig/*.dbgconf
+
+# eide template
+*.ept
+*.eide-template
