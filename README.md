@@ -173,8 +173,9 @@ EIDE 侧边栏 → 项目上右键 →「刷新」→「设为活动」
 
 | 序号 | 工程 | 内容 | 状态 |
 |---|---|---|---|
-| 01 | `01-gpio` | GPIO 输出（点灯）、输入（按键）、按键消抖 | 进行中 |
-| 02 | `02-exti` | EXTI 外部中断 + NVIC 优先级 | 待开始 |
+| 01 | `01-stm32-overview` | 第 01 章：工程搭建、时钟体系（8MHz→72MHz）、启动流程单步验证、手写 SysTick 延时 | **已完成** |
+| — | `01-gpio` / `02-exti` | 模板工作流验证（非学习产出） | 已冻结，仅作参照 |
+| 02 | `02-gpio` | 第 02 章：GPIO 8 种模式、HAL↔寄存器对照、BSRR、按键消抖 | 待开始 |
 | 03 | `03-tim-base` | 定时器时基、定时中断、PSC/ARR 计算 | 待开始 |
 | 04 | `04-tim-pwm` | PWM 输出（呼吸灯）、占空比/频率计算 | 待开始 |
 | 05 | `05-usart` | 串口收发、环形缓冲、printf 重定向 | 待开始 |
@@ -202,3 +203,14 @@ EIDE 侧边栏 → 项目上右键 →「刷新」→「设为活动」
   必须按这个顺序：**EIDE 里「关闭项目」→ 手工改 `eide.yml` → EIDE 里「打开项目」**。
   平时改配置尽量都在 EIDE 界面里改。
 - 目录里出现 `RTE_Components.h` / `build/` → 构建产物，可删；`.gitignore` 已忽略
+
+**第 01 章实战踩坑（完整版见 [`排错手册.md`](排错手册.md)）**
+
+| 现象 | 原因 / 解决 |
+|---|---|
+| 按 `F5` 弹「选择调试器」，`MEMORY` 显示 `No debugger attached` | 工作区没有 `launch.json`。**别按 F5**，用 EIDE 项目右键 → `生成调试配置` → `JLink` |
+| 点「Open Disassembly View」报 `reading 'fsPath'` | EIDE 插件 bug。**绕开**：`startup_*.s` 本身就是汇编源文件，直接在编辑器里单步 |
+| 监视里写 `RCC->CR` 报 `unable to create variable object` | `RCC` 是宏，GDB 不认宏。改用 `*(unsigned int *)0x40021000` |
+| `while(SysTick->CTRL & MASK == 0)` 延时为 0 | `==` 优先级**高于** `&`。必须写成 `((CTRL & MASK) == 0)` |
+| `HAL_RCC_GetHCLKFreq` 报错 | 少了 `HAL_RCC_` 前缀（`GetPCLK1Freq` 也要带） |
+| 切到 72MHz 后 `HAL_Delay` 时间没变 | **不是 bug**：`HAL_RCC_ClockConfig` 会调 `HAL_InitTick` 重配 SysTick。要验证速度得用忙等循环探针 |
