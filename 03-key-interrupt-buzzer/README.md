@@ -5,6 +5,20 @@
 > 建议耗时：5-7 天
 > 已有验证工程：`../02-exti`
 
+> **本章实板引脚**（完整引脚表见 [`../硬件说明.md`](../硬件说明.md)；学习用板 = **中控板（网关）**）
+>
+> | 用途 | 笔记示例 | **实板用这个** | 说明 |
+> |---|---|---|---|
+> | 按键 | PA0 | **PB12 = SW2 / PB13 = SW3** | 板上已有 2 个按键，10kΩ 上拉，按下 = 低电平 |
+> | 指示 LED | PA8 | **PA8 = LED1 / PB15 = LED2** | 低电平点亮 |
+> | 蜂鸣器 | PB12 | **中控板无蜂鸣器**；节点板 = **PB9** | 原示例 PB12 与按键 SW2 冲突，本文已改 |
+> | EXTI 编号 | EXTI0 | **EXTI12 / EXTI13** | 两条线**共用中断向量 `EXTI15_10_IRQHandler`** |
+>
+> **本板注意**
+> 1. 板上只有 SW2/SW3 两个按键，笔记里「PA0 和 PB0 配 EXTI0 互斥实验」在本板**无法复现**（PB12/PB13 不在同一条 EXTI 线上）。
+> 2. 反过来，本板会撞上一个更真实的场景：**两个按键进同一个 ISR**，必须在回调里用 `GPIO_Pin` 区分是谁触发的。
+> 3. 蜂鸣器部分：中控板做不了，用 LED 代替；若手上有节点板，用 **PB9**。
+
 ---
 
 ## 一、学习内容
@@ -199,9 +213,16 @@ int main(void)
 
 ### 5. 蜂鸣器（有源，GPIO 直控）
 
+> ⚠️ **引脚勘误**：本节原示例用的是 `PB12`，但实板（中控板）上 **PB12 是按键 SW2**！
+> 详见 `../硬件说明.md`：
+> - **中控板（网关）**：**没有蜂鸣器** → 本章跳过，或用 LED 代替
+> - **节点板（终端）**：蜂鸣器 = **PB9**，有源 3kHz，S8050 NPN 低边驱动，**输出高 = 响**
+
+**节点板（终端）的实际写法：**
+
 ```c
 #define BEEP_PORT GPIOB
-#define BEEP_PIN  GPIO_PIN_12
+#define BEEP_PIN  GPIO_PIN_9        /* 节点板 BEEP = PB9（中控板无此电路） */
 
 __HAL_RCC_GPIOB_CLK_ENABLE();
 GPIO_InitTypeDef g = {0};
@@ -209,8 +230,13 @@ g.Pin = BEEP_PIN; g.Mode = GPIO_MODE_OUTPUT_PP;
 g.Pull = GPIO_NOPULL; g.Speed = GPIO_SPEED_FREQ_LOW;
 HAL_GPIO_Init(BEEP_PORT, &g);
 
-HAL_GPIO_WritePin(BEEP_PORT, BEEP_PIN, GPIO_PIN_SET);   /* 鸣叫 */
+HAL_GPIO_WritePin(BEEP_PORT, BEEP_PIN, GPIO_PIN_SET);   /* 鸣叫（NPN 低边，高电平导通） */
+HAL_Delay(200);
+HAL_GPIO_WritePin(BEEP_PORT, BEEP_PIN, GPIO_PIN_RESET); /* 停止 */
 ```
+
+> **有源 vs 无源**：实板是**有源**蜂鸣器 → 给高电平就响，**不需要输出方波**。
+> 所以「拓展练习 5 · 演奏音阶」在这块板上做不了，要用**无源**蜂鸣器配合 PWM，留到第 05 章。
 
 ---
 
