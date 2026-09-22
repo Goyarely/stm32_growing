@@ -32,7 +32,9 @@
             "editor.tabSize": 4,
             "editor.autoIndent": "advanced"
         },
-        "files.autoSave": "afterDelay"
+        "files.autoSave": "afterDelay",
+        // 关闭灰色内联补全（CodeBuddy / Copilot 类 AI 预测文字）
+        "editor.inlineSuggest.enabled": false
     },
     "extensions": {
         "recommendations": [

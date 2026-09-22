@@ -34,3 +34,7 @@ DebugConfig/*.dbgconf
 # eide template
 *.ept
 *.eide-template
+
+# EIDE 自动拷贝的厂商依赖（可由工程重新解压/生成）
+.cmsis/
+.pack/
